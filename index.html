@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Info to Discord</title>
+</head>
+<body>
+  <h1>User Information Collector</h1>
+  <p>Click the button below to collect and send your system information to Discord.</p>
+  <button id="sendInfo">Send Info to Discord</button>
+
+  <script>
+    // Replace with your Discord webhook URL
+    const WEBHOOK_URL = "https://discord.com/api/webhooks/1279720123191525447/jH5DwzSnI-r7eEQp53I34cj4FSNP2tlBYJvYSc1KUParq0MtwNdJ0uy727VS9xzA0v8m";
+
+    // Function to collect user information
+    async function getUserInfo() {
+      try {
+        // Collect user-agent info
+        const userAgent = navigator.userAgent;
+        const platform = navigator.platform;
+        const language = navigator.language;
+
+        // Get public IP address
+        const ipResponse = await fetch("https://api.ipify.org?format=json");
+        const ipData = await ipResponse.json();
+
+        return {
+          "User Agent": userAgent,
+          "Platform": platform,
+          "Language": language,
+          "Public IP": ipData.ip,
+        };
+      } catch (error) {
+        console.error("Error collecting user info:", error);
+        return { error: "Failed to collect user information." };
+      }
+    }
+
+    // Function to send data to Discord
+    async function sendToDiscord(data) {
+      try {
+        const payload = {
+          content: "User Information Collected",
+          embeds: [
+            {
+              title: "Device Information",
+              description: "Details of the user's system",
+              color: 16711680, // Red color
+              fields: Object.keys(data).map(key => ({
+                name: key,
+                value: data[key],
+                inline: false,
+              })),
+            },
+          ],
+        };
+
+        const response = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (response.ok) {
+          alert("Data sent to Discord successfully.");
+        } else {
+          alert(`Failed to send data: ${response.statusText}`);
+        }
+      } catch (error) {
+        console.error("Error sending data to Discord:", error);
+        alert("Error sending data to Discord.");
+      }
+    }
+
+    // Add event listener to the button
+    document.getElementById("sendInfo").addEventListener("click", async () => {
+      const userInfo = await getUserInfo();
+      sendToDiscord(userInfo);
+    });
+  </script>
+</body>
+</html>
